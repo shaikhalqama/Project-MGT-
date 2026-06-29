@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { dummyWorkspaces } from "../assets/assets";
 import api from "../configs/api";
 
@@ -122,10 +122,10 @@ const workspaceSlice = createSlice({
     },
 
     extraReducers: (builder) => {
-        builder.addCase("fetchWorkspaces.pending", (state) => {
+        builder.addCase(fetchWorkspaces.pending, (state) => {
             state.loading = true;
         });
-        builder.addCase("fetchWorkspaces.fulfilled", (state, action) => {
+        builder.addCase(fetchWorkspaces.fulfilled, (state, action) => {
             state.workspaces = action.payload;
             if (action.payload.length > 0) {
                 const localStorageCurrentWorkspaceId = localStorage.getItem("currentWorkspaceId");
@@ -142,7 +142,7 @@ const workspaceSlice = createSlice({
             }
             state.loading = false;
         });
-        builder.addCase("fetchWorkspaces.rejected", (state) => {
+        builder.addCase(fetchWorkspaces.rejected, (state) => {
             state.loading = false;
         });
     }
