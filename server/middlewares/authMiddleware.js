@@ -4,10 +4,9 @@ export const protect = async (req, res, next) => {
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        req.userId = userId;
-        next();
+        return next();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message:error.code || error.message });
     }
 };
