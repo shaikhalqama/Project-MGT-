@@ -1,7 +1,10 @@
 import { Inngest } from "inngest";
 import prisma from "../configs/prisma.js";
 
-export const inngest = new Inngest({id: "Projectify"});
+export const inngest = new Inngest({
+    id: "Projectify",
+    eventKey: process.env.INNGEST_EVENT_KEY,
+});
 
 
 const syncUserCreation = inngest.createFunction(
@@ -20,7 +23,7 @@ const syncUserCreation = inngest.createFunction(
 );
 
 const syncUserDeletion = inngest.createFunction(
-    {id: 'delete-user-with-clerk', triggers: { event: 'clerk/user.deleted' }},
+    {id: 'delete-user-from-clerk', triggers: { event: 'clerk/user.deleted' }},
     async ({ event }) => {
         const { data } = event;
         await prisma.user.delete({
@@ -34,7 +37,7 @@ const syncUserDeletion = inngest.createFunction(
 
 // Inngest function to UPDATE user data to the database
 const syncUserUpdation = inngest.createFunction(
-    {id: 'update-user-with-clerk', triggers: { event: 'clerk/user.updated' }},
+    {id: 'update-user-from-clerk', triggers: { event: 'clerk/user.updated' }},
     async ({ event }) => {
         const { data } = event;
         await prisma.user.update({
