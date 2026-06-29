@@ -18,6 +18,14 @@ const Layout = () => {
         dispatch(loadTheme())
     }, [])
 
+    if (!isLoaded) {
+        return (
+            <div className='flex items-center justify-center h-screen bg-white dark:bg-zinc-950'>
+                <Loader2Icon className="size-7 text-blue-500 animate-spin" />
+            </div>
+        )
+    }
+
     if (!user) {
         return (
             <div className='flex  justify-center items-center h-screen bg-white dark:bg-zinc-950'>
