@@ -1,5 +1,37 @@
 import prisma from "../configs/prisma.js";
 
+// Create workspace directly (fallback if webhook fails)
+export const createWorkspace = async (req, res) => {
+    try {
+        const { userId } = await req.auth();
+        const { id, name, slug, image_url } = req.body;
+
+        const workspace = await prisma.workspace.create({
+            data: {
+                id,
+                name,
+                slug,
+                ownerId: userId,
+                image_url: image_url || "",
+            }
+        });
+
+        // Add creator as ADMIN member
+        await prisma.workspaceMember.create({
+            data: {
+                userId,
+                workspaceId: id,
+                role: "ADMIN"
+            }
+        });
+
+        res.json({ workspace });
+    } catch (error) {
+        console.error("Error creating workspace:", error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
 // get all workspace for user
 export const getUserWorkspaces = async (req, res) => {
     try {

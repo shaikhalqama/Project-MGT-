@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { loadTheme } from '../features/themeSlice'
 import { Loader2Icon } from 'lucide-react'
 import { useUser, SignIn, useAuth, CreateOrganization } from '@clerk/clerk-react'
-import { fetchWorkspaces } from '../features/workspaceSlice'
+import { fetchWorkspaces, addWorkspace } from '../features/workspaceSlice'
+import api from '../configs/api'
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -26,6 +27,24 @@ const Layout = () => {
             dispatch(fetchWorkspaces({ getToken }))
         }
     }, [user, isLoaded, workspaces.length, dispatch, getToken])
+
+    const handleOrganizationCreated = async (organization) => {
+        try {
+            const token = await getToken();
+            await api.post('/api/workspaces/create', {
+                id: organization.id,
+                name: organization.name,
+                slug: organization.slug,
+                image_url: organization.image_url
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Refresh workspaces after creation
+            dispatch(fetchWorkspaces({ getToken }));
+        } catch (error) {
+            console.error('Error creating workspace in database:', error);
+        }
+    }
 
     if (!isLoaded) {
         return (
@@ -52,7 +71,7 @@ const Layout = () => {
     if (user && workspaces.length === 0) {
         return (
             <div className='min-h-screen flex justify-center items-center'>
-                    <CreateOrganization />
+                    <CreateOrganization afterCreateOrganization={handleOrganizationCreated} />
             </div>
         )
     }
