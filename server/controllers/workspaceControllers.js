@@ -36,7 +36,6 @@ export const createWorkspace = async (req, res) => {
 export const getUserWorkspaces = async (req, res) => {
     try {
         const { userId } = await req.auth();
-
         const workspaces = await prisma.workspace.findMany({
             where: {
                 members: { some: { userId: userId } }

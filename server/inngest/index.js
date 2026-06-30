@@ -64,33 +64,24 @@ const syncWorkspaceCreation = inngest.createFunction(
     { event: 'clerk/organization.created' },
     async ({ event }) => {
         const { data } = event;
-        console.log('Creating workspace with data:', JSON.stringify(data, null, 2));
-        
-        try {
-            const workspace = await prisma.workspace.create({
-                data: {
-                    id: data.id,
-                    name: data.name,
-                    slug: data.slug,
-                    ownerId: data.created_by,
-                    image_url: data.image_url,
-                }
-            });
-            console.log('Workspace created successfully:', workspace.id);
+        await prisma.workspace.create({
+            data: {
+                id: data.id,
+                name: data.name,
+                slug: data.slug,
+                ownerId: data.created_by,
+                image_url: data.image_url,
+            }
+        })
 
-            // add creator as ADMIN member
-            const member = await prisma.workspaceMember.create({
-                data: {
-                    userId: data.created_by,
-                    workspaceId: data.id,
-                    role: "ADMIN"
-                }
-            });
-            console.log('Workspace member added successfully:', member.id);
-        } catch (error) {
-            console.error('Error creating workspace:', error);
-            throw error;
-        }
+        // add creator as ADMIN member
+         await prisma.workspaceMember.create({
+            data: {
+                userId: data.created_by,
+                workspaceId: data.id,
+                role: "ADMIN"
+            }
+        })   
     }
 )
 
