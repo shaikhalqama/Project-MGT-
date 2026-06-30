@@ -58,7 +58,7 @@ export const getUserWorkspaces = async (req, res) => {
                 owner: true
             }
         });
-        res.json(workspaces);
+        res.json({ workspaces });
     }
     catch (error) {
         console.log(error);
