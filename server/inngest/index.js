@@ -114,6 +114,12 @@ const syncWorkspaceDeletion = inngest.createFunction(
             where: {
                 id: data.id,
             }
+        }).catch((error) => {
+            console.error('Error deleting workspace:', error);
+            // If workspace doesn't exist, that's fine (already deleted)
+            if (error.code !== 'P2025') {
+                throw error;
+            }
         });
     }
 );
