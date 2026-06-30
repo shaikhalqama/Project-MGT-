@@ -47,6 +47,10 @@ function WorkspaceDropdown() {
         <div className="relative m-4" ref={dropdownRef}>
             <button onClick={() => setIsOpen(prev => !prev)} className="w-full flex items-center justify-between p-3 h-auto text-left rounded hover:bg-gray-100 dark:hover:bg-zinc-800" >
                 <div className="flex items-center gap-3">
+                    {/* image placeholder  okkkkecz vd
+                    c znm z
+                    c bnz n  zjkkdczmnm
+                    yaaay lalalalaal*/}
                     <img src={currentWorkspace?.image_url || "/src/assets/workspace_img_default.png"} alt={currentWorkspace?.name} className="w-8 h-8 rounded shadow" />
                     <div className="min-w-0 flex-1">
                         <p className="font-semibold text-gray-800 dark:text-white text-sm truncate">
