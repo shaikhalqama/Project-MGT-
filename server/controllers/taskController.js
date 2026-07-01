@@ -51,6 +51,14 @@ export const createTask = async (req, res) => {
             },
             include: {assignee: true}
         })
+        
+        await inngest.send({
+            name:"app/task.assigned",
+            data:{
+                taskId: task.id,
+                origin
+            }
+        })
 
         return res.json({task:taskWithAssignee, message:'Task created successfully'})
 
