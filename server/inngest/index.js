@@ -146,7 +146,8 @@ const syncWorkspaceMemberCreation = inngest.createFunction(
 
 // inngest function to send email notification on task assignment
 const sendTaskAssignmentEmail = inngest.createFunction(
-        { id: 'send-task-assignment-email', triggers: { event: 'app/task.assigned' } },
+    { id: 'send-task-assignment-email'},
+    { event: 'app/task.assigned' },
     async ({ event, step }) => {
         const { taskId, origin } = event.data;
 
