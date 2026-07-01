@@ -1,8 +1,10 @@
 import { FolderOpen, CheckCircle, Users, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useUser } from "@clerk/clerk-react";
 
 export default function StatsGrid() {
+    const {user} = useUser()
     const currentWorkspace = useSelector(
         (state) => state?.workspace?.currentWorkspace || null
     );

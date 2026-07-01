@@ -25,7 +25,11 @@ const syncUserCreation = inngest.createFunction(
         });
         
         // send email to user
-        await sendEmail(data?.email_addresses[0]?.email_address, "Welcome to Projectify", "Welcome to Projectify");
+        await sendEmail({
+            to: data?.email_addresses[0]?.email_address,
+            subject: "Welcome to Projectify",
+            body: "Welcome to Projectify"
+        });
     }
 );
 
@@ -124,6 +128,35 @@ const syncWorkspaceDeletion = inngest.createFunction(
             if (error.code !== 'P2025') {
                 throw error;
             }
+        });
+    }
+);
+
+// Inngest function to send email when invitation is created
+const sendInvitationEmail = inngest.createFunction(
+    { id: 'send-invitation-email' },
+    { event: 'clerk/organizationInvitation.created' },
+    async ({ event }) => {
+        const { data } = event;
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: data.organization_id },
+            select: { name: true }
+        });
+
+        await sendEmail({
+            to: data.email_address,
+            subject: `You're invited to join ${workspace?.name || 'a workspace'}`,
+            body: `<div style="max-width: 600px;">
+        <h2>You're invited! 🎉</h2>
+        <p style="font-size: 16px;">You've been invited to join the workspace <strong>${workspace?.name || 'Projectify'}</strong>.</p>
+        <p style="font-size: 16px;">Click the button below to accept the invitation and get started.</p>
+        <a href="${data.public_url}" style="background-color: #007bff; padding: 12px 24px; border-radius: 5px; color: #fff; font-weight: 600; font-size: 16px; text-decoration: none; display: inline-block; margin-top: 20px;">
+            Accept Invitation
+        </a>
+        <p style="margin-top: 20px; font-size: 14px; color: #6c757d;">
+            If you didn't expect this invitation, you can safely ignore this email.
+        </p>
+    </div>`
         });
     }
 );
@@ -237,6 +270,7 @@ export const functions = [
     syncWorkspaceCreation,
     syncWorkspaceUpdation,
     syncWorkspaceDeletion,
+    sendInvitationEmail,
     syncWorkspaceMemberCreation,
     sendTaskAssignmentEmail,
 ];

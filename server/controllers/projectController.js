@@ -62,10 +62,11 @@ export const createProject = async (req, res) => {
     
     const projectWithMembers = await prisma.project.findUnique({
           where: { id: project.id },
-          include: {members:{user:true}},
-          tasks: {include:{assignee:true, Comments:{include:{user:true}}}},
-          owner: true
-    
+          include: {
+            members: {include: {user: true}},
+            tasks: {include: {assignee: true, comments: {include: {user: true}}}},
+            owner: true
+          }
         })
 
         res.json({project: projectWithMembers, message:"project created successfully"});
