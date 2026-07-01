@@ -44,21 +44,22 @@ export const createProject = async (req, res) => {
         })
 
        // add team members to project if they are in workspace
+        const membersToAdd = [teamLead.id] // Always add team lead as a project member
+        
         if(team_members?.length > 0){
-          const membersToAdd = []
           workspace.members.forEach(member => {
-            if(team_members.includes(member.user.email)){
+            if(team_members.includes(member.user.email) && member.user.id !== teamLead.id){
               membersToAdd.push(member.user.id)
             }
           })
+        }
         
-          await prisma.projectMember.createMany({
+        await prisma.projectMember.createMany({
             data: membersToAdd.map(memberId => ({
               projectId: project.id,
               userId: memberId
             }))
-          })
-    }
+        })
     
     const projectWithMembers = await prisma.project.findUnique({
           where: { id: project.id },

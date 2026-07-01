@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Mail, UserPlus } from "lucide-react";
 import { useSelector } from "react-redux";
-import { useOrganization } from "@clerk/clerk-react";
+import { useAuth, useOrganization } from "@clerk/clerk-react";
 import { toast } from "react-hot-toast";
+import api from "../configs/api";
 
 const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const { organization } = useOrganization();
+    const { getToken } = useAuth();
 
     const currentWorkspace = useSelector((state) => state.workspace?.currentWorkspace || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,12 +25,26 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                 emailAddress: formData.email,
                 role: formData.role,
             });
-            toast.success("Member invited successfully");
+
+            const token = await getToken();
+            await api.post("/api/workspaces/send-invite-email", {
+                email: formData.email,
+                workspaceName: currentWorkspace?.name || organization?.name || "Projectify",
+                workspaceId: currentWorkspace?.id || organization?.id,
+                role: formData.role,
+                inviteUrl: organization?.url || "https://projectify.app",
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            toast.success("Invitation sent successfully");
             setIsDialogOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error(error.response?.data?.message || error.message);
-        } finally{
+            toast.error(error.response?.data?.message || error.message || "Failed to send invitation");
+        } finally {
             setIsSubmitting(false)
         }
     };

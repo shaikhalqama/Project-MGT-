@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Mail, UserPlus } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 const AddProjectMember = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const [searchParams] = useSearchParams();
+    const { user } = useUser();
 
     const id = searchParams.get('id');
 
@@ -52,7 +54,10 @@ const AddProjectMember = ({ isDialogOpen, setIsDialogOpen }) => {
                             <select value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 mt-1 w-full rounded border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-200 text-sm placeholder-zinc-400 dark:placeholder-zinc-500 py-2 focus:outline-none focus:border-blue-500" required >
                                 <option value="">Select a member</option>
                                 {currentWorkspace?.members
-                                    .filter((member) => !projectMembersEmails.includes(member.user.email))
+                                    .filter((member) => 
+                                        !projectMembersEmails.includes(member.user.email) && 
+                                        member.user.id !== user?.id
+                                    )
                                     .map((member) => (
                                         <option key={member.user.id} value={member.user.email}> {member.user.email} </option>
                                     ))}
