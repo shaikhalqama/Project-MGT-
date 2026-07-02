@@ -4,67 +4,85 @@ import { inngest } from "../inngest/index.js";
 // create task
 export const createTask = async (req, res) => {
     try {
-        const {userId} = await req.auth();
-         const {projectId,title,description,type,status,priority,assigneeId,
-            due_date} = req.body;
-        const origin = req.get('origin')
+        const { userId } = await req.auth();
+        // support both `projectId` and `project_id` from clients
+        const {
+            projectId: bodyProjectId,
+            project_id: body_project_id,
+            title,
+            description,
+            type,
+            status,
+            priority,
+            assigneeId,
+            due_date,
+        } = req.body;
+        const projectId = bodyProjectId || body_project_id;
+        const origin = req.get('origin');
 
         // check if user has admin role for project
+        if (!projectId) {
+            return res.status(400).json({ message: 'projectId is required' });
+        }
+
         const project = await prisma.project.findUnique({
-            where: {
-                id: projectId
-            },
-            include: {
-                members: {
-                    include: {
-                        user: true
-                    }
-                }
-            }
-        })
-    
-        if(!project) {
-            return res.status(404).json({message: 'Project not found'})
-        }else if(project.team_lead !== userId) {
-            return res.status(403).json({message: 'You are not authorized to create task for this project'})
-        }else if(assigneeId && !project.members.find(member => member.userId === assigneeId)) {
-            return res.status(403).json({message: 'Assignee is not a member of this project'});
+            where: { id: projectId },
+            include: { members: { include: { user: true } } },
+        });
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' })
+        } else if (project.team_lead !== userId) {
+            return res.status(403).json({ message: 'You are not authorized to create task for this project' })
+        }
+
+        // determine assignee: prefer provided, fallback to requestor
+        const taskAssigneeId = assigneeId && String(assigneeId).trim() ? assigneeId : userId;
+
+        // treat team lead as implicit project member
+        const isAssigneeMember =
+            project.members.find((member) => member.userId === taskAssigneeId) ||
+            project.team_lead === taskAssigneeId;
+
+        if (!isAssigneeMember) {
+            return res.status(403).json({ message: "Assignee is not a member of this project" });
+        }
+
+        if (!projectId) {
+            return res.status(400).json({ message: 'projectId is required' });
         }
 
         const task = await prisma.task.create({
             data: {
-                project_id: projectId,
+                projectId,
                 title,
                 description,
                 status,
                 priority,
                 type,
-                assigneeId,
-                due_date: due_date ? new Date(due_date) : null,
-                
-            }
-        })
+                assigneeId: taskAssigneeId,
+                due_date: due_date ? new Date(due_date) : new Date(),
+            },
+        });
 
         const taskWithAssignee = await prisma.task.findUnique({
-            where: {
-                id: task.id
-            },
-            include: {assignee: true}
-        })
-        
-        await inngest.send({
-            name:"app/task.assigned",
-            data:{
-                taskId: task.id,
-                origin
-            }
-        })
+            where: { id: task.id },
+            include: { assignee: true },
+        });
 
-        return res.json({task:taskWithAssignee, message:'Task created successfully'})
+        // respond immediately so task creation success is not blocked by inngest
+        res.json({ task: taskWithAssignee, message: 'Task created successfully' });
+
+        inngest
+            .send({
+                name: 'app/task.assigned',
+                data: { taskId: task.id, origin },
+            })
+            .catch((err) => console.error('inngest send failed', err));
 
     } catch (error) {
         console.error(error)
-        return res.status(500).json({message: error.code || error.message})
+        return res.status(500).json({ message: error.code || error.message })
     }
 }
 
@@ -76,10 +94,10 @@ export const updateTask = async (req, res) => {
                 id: req.params.id
             }
         })
-        if(!task) {
-            return res.status(404).json({message: 'Task not found'})
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' })
         }
-        const {userId} = await req.auth();
+        const { userId } = await req.auth();
         // check if user has admin role for project
         const project = await prisma.project.findUnique({
             where: {
@@ -93,11 +111,11 @@ export const updateTask = async (req, res) => {
                 }
             }
         })
-    
-        if(!project) {
-            return res.status(404).json({message: 'Project not found'})
-        }else if(project.team_lead !== userId) {
-            return res.status(403).json({message: 'You are not authorized to create task for this project'})
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' })
+        } else if (project.team_lead !== userId) {
+            return res.status(403).json({ message: 'You are not authorized to create task for this project' })
         }
 
         const updatedTask = await prisma.task.update({
@@ -106,19 +124,19 @@ export const updateTask = async (req, res) => {
             },
             data: req.body
         })
-        return res.json({task:updatedTask, message:'Task updated successfully'})
+        return res.json({ task: updatedTask, message: 'Task updated successfully' })
 
     } catch (error) {
         console.error(error)
-        return res.status(500).json({message: error.code || error.message})
+        return res.status(500).json({ message: error.code || error.message })
     }
 }
 
 // delete task
 export const deleteTask = async (req, res) => {
     try {
-        const {userId} = await req.auth();
-        const {taskIds} = req.body;
+        const { userId } = await req.auth();
+        const { taskIds } = req.body;
         const tasks = await prisma.task.findMany({
             where: {
                 id: {
@@ -127,8 +145,8 @@ export const deleteTask = async (req, res) => {
             }
         })
 
-        if(tasks.length === 0) {
-            return res.status(404).json({message: 'Tasks not found'})
+        if (tasks.length === 0) {
+            return res.status(404).json({ message: 'Tasks not found' })
         }
 
         const project = await prisma.project.findUnique({
@@ -143,25 +161,25 @@ export const deleteTask = async (req, res) => {
                 }
             }
         })
-    
-        if(!project) {
-            return res.status(404).json({message: 'Project not found'})
-        }else if(project.team_lead !== userId) {
-            return res.status(403).json({message: 'You are not authorized to delete task for this project'})
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' })
+        } else if (project.team_lead !== userId) {
+            return res.status(403).json({ message: 'You are not authorized to delete task for this project' })
         }
 
         await prisma.task.deleteMany({
             where: {
                 id: {
-                    in: tasksIds
+                    in: taskIds
                 }
             }
         })
 
-        return res.json({message:'Tasks deleted successfully'})
+        return res.json({ message: 'Tasks deleted successfully' })
 
     } catch (error) {
         console.error(error)
-        return res.status(500).json({message: error.code || error.message})
+        return res.status(500).json({ message: error.code || error.message })
     }
 }
