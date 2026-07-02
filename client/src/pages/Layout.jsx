@@ -71,7 +71,7 @@ const Layout = () => {
     if (user && workspaces.length === 0) {
         return (
             <div className='min-h-screen flex justify-center items-center'>
-                    <CreateOrganization afterCreateOrganizationUrl="/" onCreate={handleOrganizationCreated} />
+                <CreateOrganization afterCreateOrganizationUrl="/" onCreate={handleOrganizationCreated} />
             </div>
         )
     }

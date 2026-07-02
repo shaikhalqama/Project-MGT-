@@ -12,7 +12,7 @@ const TaskDetails = () => {
     const projectId = searchParams.get("projectId");
     const taskId = searchParams.get("taskId");
 
-    const user = { id : 'user_1'}
+    const user = { id: 'user_1' }
     const [task, setTask] = useState(null);
     const [project, setProject] = useState(null);
     const [comments, setComments] = useState([]);
@@ -62,7 +62,7 @@ const TaskDetails = () => {
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
             const dummyComment = { id: Date.now(), user: { id: 1, name: "User", image: assets.profile_img_a }, content: newComment, createdAt: new Date() };
-            
+
             setComments((prev) => [...prev, dummyComment]);
             setNewComment("");
             toast.dismissAll();
