@@ -10,9 +10,7 @@ export default function TasksSummary() {
 
     // Get all tasks for all projects in current workspace
     useEffect(() => {
-        if (currentWorkspace) {
-            setTasks(currentWorkspace.projects.flatMap((project) => project.tasks));
-        }
+        setTasks(currentWorkspace?.projects?.flatMap((project) => project.tasks) || []);
     }, [currentWorkspace]);
 
     const myTasks = tasks.filter(i => i.assigneeId === user.id);

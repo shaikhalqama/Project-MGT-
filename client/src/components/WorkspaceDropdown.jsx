@@ -8,8 +8,8 @@ import { useOrganizationList, useClerk } from "@clerk/clerk-react";
 
 function WorkspaceDropdown() {
 
-    const { setActive,userMemberships, isLoaded } = useOrganizationList({userMemberships : true});
-    const {openCreateOrganization} = useClerk();
+    const { setActive, userMemberships, isLoaded } = useOrganizationList({ userMemberships: true });
+    const { openCreateOrganization } = useClerk();
 
     const { workspaces } = useSelector((state) => state.workspace);
     const currentWorkspace = useSelector((state) => state.workspace?.currentWorkspace || null);
@@ -20,7 +20,7 @@ function WorkspaceDropdown() {
     const navigate = useNavigate();
 
     const onSelectWorkspace = (organizationId) => {
-        setActive({organization: organizationId});
+        setActive({ organization: organizationId });
         dispatch(setCurrentWorkspace(organizationId))
         setIsOpen(false);
         navigate('/')
@@ -37,11 +37,11 @@ function WorkspaceDropdown() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    useEffect(() =>{
-        if(currentWorkspace && isLoaded){
-            setActive({organization: currentWorkspace.id});
+    useEffect(() => {
+        if (currentWorkspace && isLoaded) {
+            setActive({ organization: currentWorkspace.id });
         }
-    },[currentWorkspace,isLoaded])
+    }, [currentWorkspace, isLoaded])
 
     return (
         <div className="relative m-4" ref={dropdownRef}>
@@ -70,7 +70,7 @@ function WorkspaceDropdown() {
                         <p className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-2 px-2">
                             Workspaces
                         </p>
-                        {userMemberships.data.map(({organization}) => (
+                        {userMemberships.data.map(({ organization }) => (
                             <div key={organization.id} onClick={() => onSelectWorkspace(organization.id)} className="flex items-center gap-3 p-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-zinc-800" >
                                 <img src={organization.imageUrl || "/src/assets/workspace_img_default.png"} alt={organization.name} className="w-6 h-6 rounded" />
                                 <div className="flex-1 min-w-0">
@@ -90,7 +90,7 @@ function WorkspaceDropdown() {
 
                     <hr className="border-gray-200 dark:border-zinc-700" />
 
-                    <div onClick={() => {openCreateOrganization(); setIsOpen(false)}} className="p-2 cursor-pointer rounded group hover:bg-gray-100 dark:hover:bg-zinc-800" >
+                    <div onClick={() => { openCreateOrganization(); setIsOpen(false) }} className="p-2 cursor-pointer rounded group hover:bg-gray-100 dark:hover:bg-zinc-800" >
                         <p className="flex items-center text-xs gap-2 my-1 w-full text-blue-600 dark:text-blue-400 group-hover:text-blue-500 dark:group-hover:text-blue-300">
                             <Plus className="w-4 h-4" /> Create Workspace
                         </p>

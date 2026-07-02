@@ -27,13 +27,24 @@ const TaskDetails = () => {
 
     const fetchTaskDetails = async () => {
         setLoading(true);
-        if (!projectId || !taskId) return;
+        if (!projectId || !taskId) {
+            setLoading(false);
+            return;
+        }
 
-        const proj = currentWorkspace.projects.find((p) => p.id === projectId);
-        if (!proj) return;
+        if (!currentWorkspace) return;
 
-        const tsk = proj.tasks.find((t) => t.id === taskId);
-        if (!tsk) return;
+        const proj = currentWorkspace.projects?.find((p) => p.id === projectId);
+        if (!proj) {
+            setLoading(false);
+            return;
+        }
+
+        const tsk = proj.tasks?.find((t) => t.id === taskId);
+        if (!tsk) {
+            setLoading(false);
+            return;
+        }
 
         setTask(tsk);
         setProject(proj);
@@ -63,7 +74,7 @@ const TaskDetails = () => {
         }
     };
 
-    useEffect(() => { fetchTaskDetails(); }, [taskId]);
+    useEffect(() => { fetchTaskDetails(); }, [taskId, currentWorkspace]);
 
     useEffect(() => {
         if (taskId && task) {
@@ -94,7 +105,7 @@ const TaskDetails = () => {
                                             <img src={comment.user.image} alt="avatar" className="size-5 rounded-full" />
                                             <span className="font-medium text-gray-900 dark:text-white">{comment.user.name}</span>
                                             <span className="text-xs text-gray-400 dark:text-zinc-600">
-                                                • {format(new Date(comment.createdAt), "dd MMM yyyy, HH:mm")}
+                                                • {comment.createdAt ? format(new Date(comment.createdAt), "dd MMM yyyy, HH:mm") : ""}
                                             </span>
                                         </div>
                                         <p className="text-sm text-gray-900 dark:text-zinc-200">{comment.content}</p>
@@ -154,7 +165,7 @@ const TaskDetails = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <CalendarIcon className="size-4 text-gray-500 dark:text-zinc-500" />
-                            Due : {format(new Date(task.due_date), "dd MMM yyyy")}
+                            Due : {task.due_date ? format(new Date(task.due_date), "dd MMM yyyy") : "No due date"}
                         </div>
                     </div>
                 </div>

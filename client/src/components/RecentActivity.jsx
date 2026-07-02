@@ -25,7 +25,7 @@ const RecentActivity = () => {
 
         if (!currentWorkspace) return;
 
-        const tasks = currentWorkspace.projects.flatMap((project) => project.tasks.map((task) => task));
+        const tasks = currentWorkspace.projects?.flatMap((project) => project.tasks?.map((task) => task) || []) || [];
         setTasks(tasks);
     };
 
@@ -73,7 +73,7 @@ const RecentActivity = () => {
                                                 {task.assignee && (
                                                     <div className="flex items-center gap-1">
                                                         <div className="w-4 h-4 bg-zinc-300 dark:bg-zinc-700 rounded-full flex items-center justify-center text-[10px] text-zinc-800 dark:text-zinc-200">
-                                                            {task.assignee.name[0].toUpperCase()}
+                                                            {task.assignee.name?.[0]?.toUpperCase() || "?"}
                                                         </div>
                                                         {task.assignee.name}
                                                     </div>
