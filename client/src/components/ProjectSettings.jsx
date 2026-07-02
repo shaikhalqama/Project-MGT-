@@ -140,16 +140,14 @@ export default function ProjectSettings({ project }) {
                     </div>
 
                     {/* Member List */}
-                    {project.members.length > 0 && (
-                        <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
-                            {project.members.map((member, index) => (
-                                <div key={index} className="flex items-center justify-between px-3 py-2 rounded dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-300" >
-                                    <span> {member?.user?.email || "Unknown"} </span>
-                                    {project.team_lead === member.user.id && <span className="px-2 py-0.5 rounded-xs ring ring-zinc-200 dark:ring-zinc-600">Team Lead</span>}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
+                        {project.members.map((member, index) => (
+                            <div key={member.id || index} className="flex items-center justify-between px-3 py-2 rounded dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-300" >
+                                <span className="truncate flex-1"> {member?.user?.email || "Unknown"} </span>
+                                {project.team_lead === member.userId && <span className="px-2 py-0.5 rounded-xs ring ring-zinc-200 dark:ring-zinc-600 ml-2">Team Lead</span>}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

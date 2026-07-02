@@ -152,7 +152,7 @@ export const addMember = async (req, res) => {
         }
 
         // check if user is already a member
-        const existingMember = project.members.find(member => member.email === email);
+        const existingMember = project.members.find(member => member.user.email === email);
         if(existingMember){
             return res.status(400).json({ message: 'user is already a member' });
         }
@@ -166,11 +166,20 @@ export const addMember = async (req, res) => {
         const member = await prisma.projectMember.create({
             data: {
                 userId: user.id,
-                projectId  
+                projectId
             }
         });
-        
-        res.json({member, message:"member added successfully"}); 
+
+        const updatedProject = await prisma.project.findUnique({
+            where: { id: projectId },
+            include: {
+                members: { include: { user: true } },
+                tasks: { include: { assignee: true, comments: { include: { user: true } } } },
+                owner: true
+            }
+        });
+
+        res.json({ project: updatedProject, message: "member added successfully" }); 
    } catch (error) {
      console.error(error);
      res.status(500).json({ message: error.message || error.message });
