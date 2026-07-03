@@ -21,18 +21,23 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await organization.inviteMember({
+            // Create the invitation via Clerk and capture the returned invitation
+            const invitation = await organization.inviteMember({
                 emailAddress: formData.email,
                 role: formData.role,
             });
 
             const token = await getToken();
+            // Prefer the Clerk-provided public invite URL so the recipient is prompted
+            // to sign in/sign up with their own account instead of reusing the current session.
+            const inviteUrl = invitation?.public_url || organization?.url || "https://projectify.app";
+
             await api.post("/api/workspaces/send-invite-email", {
                 email: formData.email,
                 workspaceName: currentWorkspace?.name || organization?.name || "Projectify",
                 workspaceId: currentWorkspace?.id || organization?.id,
                 role: formData.role,
-                inviteUrl: organization?.url || "https://projectify.app",
+                inviteUrl,
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`,

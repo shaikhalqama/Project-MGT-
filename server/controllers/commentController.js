@@ -42,7 +42,7 @@ export const addComment = async (req, res) => {
             }
         });
 
-        res.json(comment)
+        res.json({comment})
 
     } catch (error) {
         console.error(error)

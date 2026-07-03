@@ -4,18 +4,25 @@ import { useSelector } from "react-redux";
 import { format } from "date-fns";
 import { useAuth } from "@clerk/clerk-react";
 import { useDispatch } from "react-redux";
-import {addTask} from "../features/workspaceSlice";
+import { addTask } from "../features/workspaceSlice";
 import { toast } from "react-hot-toast";
 import api from "../configs/api";
 
 export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, projectId }) {
 
-    const {getToken} = useAuth();
+    const { getToken } = useAuth();
     const dispatch = useDispatch();
 
     const currentWorkspace = useSelector((state) => state.workspace?.currentWorkspace || null);
     const project = currentWorkspace?.projects.find((p) => p.id === projectId);
-    const teamMembers = project?.members || [];
+    // Combine project members with workspace members so any workspace user can be assigned
+    const workspaceMembers = currentWorkspace?.members || [];
+    const projectMembers = project?.members || [];
+    const projectMemberIds = new Set(projectMembers.map((m) => m.user.id));
+    const teamMembers = [
+        ...projectMembers,
+        ...workspaceMembers.filter((m) => !projectMemberIds.has(m.user.id)),
+    ];
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
@@ -32,8 +39,8 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const {data} = await api.post('/api/tasks', {...formData,workspaceId: currentWorkspace.id, projectId},
-                {headers: {'Authorization': `Bearer ${await getToken()}`}}
+            const { data } = await api.post('/api/tasks', { ...formData, workspaceId: currentWorkspace.id, projectId },
+                { headers: { 'Authorization': `Bearer ${await getToken()}` } }
             );
             setShowCreateTask(false);
             setFormData({
@@ -47,9 +54,9 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
             })
             toast.success(data.message);
             dispatch(addTask(data.task));
-           
+
         } catch (error) {
-           toast.error(error.response?.data?.message || "Failed to create task");
+            toast.error(error.response?.data?.message || "Failed to create task");
         } finally {
             setIsSubmitting(false);
         }

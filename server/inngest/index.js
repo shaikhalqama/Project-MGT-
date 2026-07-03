@@ -1,6 +1,6 @@
 import { Inngest } from "inngest";
 import prisma from "../configs/prisma.js";
-import  sendEmail from "../configs/nodeMailer.js"
+import sendEmail from "../configs/nodeMailer.js"
 
 export const inngest = new Inngest({
     id: "Projectify",
@@ -23,7 +23,7 @@ const syncUserCreation = inngest.createFunction(
                 image: data?.image_url,
             }
         });
-        
+
         // send email to user
         await sendEmail({
             to: data?.email_addresses[0]?.email_address,
@@ -83,13 +83,13 @@ const syncWorkspaceCreation = inngest.createFunction(
         })
 
         // add creator as ADMIN member
-         await prisma.workspaceMember.create({
+        await prisma.workspaceMember.create({
             data: {
                 userId: data.created_by,
                 workspaceId: data.id,
                 role: "ADMIN"
             }
-        })   
+        })
     }
 )
 
@@ -179,9 +179,9 @@ const syncWorkspaceMemberCreation = inngest.createFunction(
 
 // inngest function to send email notification on task assignment
 const sendTaskAssignmentEmail = inngest.createFunction(
-    { id: 'send-task-assignment-email'},
-    { event: 'app/task.assigned' },
+        { id: 'send-task-assignment-email', triggers: { event: 'app/task.assigned' } },
     async ({ event, step }) => {
+        console.log('Task assignment email function triggered with data:', event.data);
         const { taskId, origin } = event.data;
 
         const task = await prisma.task.findUnique({
@@ -194,14 +194,20 @@ const sendTaskAssignmentEmail = inngest.createFunction(
             }
         })
 
+        if (!task) {
+            console.error('Task not found:', taskId);
+            return;
+        }
+
+        console.log('Sending email to:', task.assignee.email, 'for task:', task.title);
         await sendEmail({
             to: task.assignee.email,
             subject: `New Task Assigned ${task.project.name}`,
             body: `<div style="max-width: 600px;">
-        <h2>Hi ${task.assignee.name}, 😴 </h2>
+        <h2>Hi ${task.assignee.name}, </h2>
 
         <p style="font-size: 16px;">You've been assigned a new task:</p>
-        <p style="font-size: 18px; font-weight: bold; color: #007bff; margin: 8px 0;">${task.title} 😴</p>
+        <p style="font-size: 18px; font-weight: bold; color: #007bff; margin: 8px 0;">${task.title}</p>
 
         <div style="border: 1px solid #ddd; padding: 12px 16px; border-radius: 6px; margin-bottom: 30px;">
             <p style="margin: 6px 0;"><strong>Description:</strong> ${task.description}</p>
@@ -217,7 +223,6 @@ const sendTaskAssignmentEmail = inngest.createFunction(
         </p>
     </div>`
         })
-
         if (new Date(task.due_date).toLocaleDateString() !== new Date().toDateString()) {
             await step.sleepUntil('wait until due date', new Date(task.due_date));
             await step.run('check if task is completed0', async () => {
@@ -232,12 +237,12 @@ const sendTaskAssignmentEmail = inngest.createFunction(
                 })
                 if (!task) return;
                 if (task.status !== 'DONE') {
-                    await step.run('send-task-reminder-mail', async () => {
+                    await step.run('send reminder email', async () => {
                         await sendEmail({
                             to: task.assignee.email,
                             subject: `Reminder for ${task.project.name}`,
                             body: `<div style="max-width: 600px;">
-        <h2>Hi 😊 ${task.assignee.name}, </h2>
+        <h2>Hi ${task.assignee.name}, </h2>
 
         <p style="font-size: 16px;">You have a task due in ${task.project.name}:</p>
         <p style="font-size: 18px; font-weight: bold; color: #007bff; margin: 8px 0;">${task.title}</p>

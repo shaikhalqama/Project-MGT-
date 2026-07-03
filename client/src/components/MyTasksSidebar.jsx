@@ -6,7 +6,8 @@ import { useUser } from '@clerk/clerk-react';
 
 function MyTasksSidebar() {
 
-    const user = useUser();
+    const {user} = useUser()
+
     const { currentWorkspace } = useSelector((state) => state.workspace);
     const [showMyTasks, setShowMyTasks] = useState(false);
     const [myTasks, setMyTasks] = useState([]);
@@ -29,9 +30,9 @@ function MyTasksSidebar() {
     const fetchUserTasks = () => {
         const userId = user?.id || '';
         if (!userId || !currentWorkspace) return;
-        const currentWorkspaceTasks = currentWorkspace.projects?.flatMap((project) => {
-            return project.tasks?.filter((task) => task?.assignee?.id === userId) || [];
-        }) || [];
+        const currentWorkspaceTasks = currentWorkspace.projects.flatMap((project) => {
+            return project.tasks.filter((task) => task?.assignee?.id === userId);
+        });
 
         setMyTasks(currentWorkspaceTasks);
     }
