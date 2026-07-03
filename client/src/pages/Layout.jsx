@@ -28,6 +28,16 @@ const Layout = () => {
         }
     }, [user, isLoaded, workspaces.length, dispatch, getToken])
 
+    // Poll for workspace updates every 30 seconds
+    useEffect(() => {
+        if (isLoaded && user && workspaces.length > 0) {
+            const interval = setInterval(() => {
+                dispatch(fetchWorkspaces({ getToken }))
+            }, 30000)
+            return () => clearInterval(interval)
+        }
+    }, [isLoaded, user, workspaces.length, dispatch, getToken])
+
     const handleOrganizationCreated = async (organization) => {
         try {
             const token = await getToken();

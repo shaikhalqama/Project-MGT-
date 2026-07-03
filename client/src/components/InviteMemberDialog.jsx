@@ -46,6 +46,8 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
             toast.success("Invitation sent successfully");
             setIsDialogOpen(false);
+            // Refresh workspaces to show new member
+            window.location.reload();
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || error.message || "Failed to send invitation");

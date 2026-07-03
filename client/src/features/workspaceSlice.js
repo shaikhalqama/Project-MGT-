@@ -7,12 +7,15 @@ export const fetchWorkspaces = createAsyncThunk("workspace/fetchWorkspaces", asy
         const token = await getToken();
         const { data } = await api.get("/api/workspaces", {
             headers: {
-                Authorization: `Bearer ${await getToken()}`
+                Authorization: `Bearer ${token}`
             }
         })
         return data.workspaces || [];
     } catch (error) {
         console.error("Error fetching workspaces:", error?.response?.data?.message || error.message);
+        if (error?.response?.status === 401) {
+            throw new Error("Unauthorized - please sign in again");
+        }
         return [];
     }
 });
@@ -31,7 +34,6 @@ const workspaceSlice = createSlice({
             state.workspaces = action.payload;
         },
         setCurrentWorkspace: (state, action) => {
-            localStorage.setItem("currentWorkspaceId", action.payload);
             state.currentWorkspace = state.workspaces.find((w) => w.id === action.payload);
         },
         addWorkspace: (state, action) => {
@@ -128,22 +130,17 @@ const workspaceSlice = createSlice({
         builder.addCase(fetchWorkspaces.fulfilled, (state, action) => {
             state.workspaces = action.payload;
             if (action.payload.length > 0) {
-                const localStorageCurrentWorkspaceId = localStorage.getItem("currentWorkspaceId");
-                if (localStorageCurrentWorkspaceId) {
-                    const findworkspace = action.payload.find((w) => w.id === localStorageCurrentWorkspaceId);
-                    if (findworkspace) {
-                        state.currentWorkspace = findworkspace;
-                    } else {
-                        state.currentWorkspace = action.payload[0];
-                    }
-                } else {
+                if (!state.currentWorkspace) {
                     state.currentWorkspace = action.payload[0];
                 }
             }
             state.loading = false;
         });
-        builder.addCase(fetchWorkspaces.rejected, (state) => {
+        builder.addCase(fetchWorkspaces.rejected, (state, action) => {
             state.loading = false;
+            if (action.error?.message?.includes('Unauthorized')) {
+                console.error('Authentication error - user may need to re-login');
+            }
         });
     }
 });
